@@ -1,0 +1,197 @@
+machine standard
+
+  define word GNM
+    address letter = "G"
+  end define
+
+  define word M3
+    address letter = "M"
+  end define
+
+  define format ( GNM M3 )
+    address width                      = 1
+    field width                        = 2
+    exponent width                     = 0
+    scale factor                       = 1
+    scale divisor                      = 1
+    tape position                      = 0
+    print position                     = 1
+    sign                               = none
+    not permanent
+    not modal
+    metric formats
+      leading zeros                    = false
+      trailing zeros                   = true
+      decimal point                    = false
+      decimal places                   = 0
+    imperial formats
+      leading zeros                    = false
+      trailing zeros                   = true
+      decimal point                    = false
+      decimal places                   = 0
+   end define
+
+  define format ( G7 )
+   address letter = "G"
+  end define
+
+  define format ( N )
+    field width                        = 5
+    leading zeros = true
+#    not 
+    permanent
+  end define
+
+  define format ( F )
+    metric formats
+      decimal point                    = false
+      trailing zeros                   = true
+      decimal places                   = 0
+    imperial formats
+      decimal point                    = false
+      trailing zeros                   = true
+      decimal places                   = 0
+  end define
+
+  define format ( GNM G1 G2 G3 G4 G5 G6 G7 M1 M2 M3 F S T X Y Z I J K MS EM )
+    tape position                      = 1
+  end define
+
+  define format ( X Y Z I J K )
+    trailing zeros                    = true
+  end define
+
+  define format ( I J K )
+    scale factor                      = -1
+  end define
+
+  define format ( MS EM )
+    field width                       = 0
+  end define
+
+  word order = (    /    N    GNM  G1   G2   G3   G4   )
+  word order = ( +  G5   G6   G7   X    Y    Z    I    )
+  word order = ( +  J    K    R    R2   Q    A    B    )
+  word order = ( +  C    U    V    W    Z2   F    S    )
+  word order = ( +  T    M1   M2   M3   L    P    D    )
+  word order = ( +  E    H    O    MS   msg  EM   )
+
+  define keys
+    message start                     = MS
+    message end                       = EM
+  end define
+
+  define codes
+    rapid                             = G1 0
+    linear                            = G1 1
+    circle cw                         = G1 2
+    circle ccw                        = G1 3
+    dwell                             = GNM 4
+    xy plane                          = G2 17
+    xz plane                          = G2 18
+    zy plane                          = G2 19
+    compensation off                  = G7 40
+    imperial data                     = G6 20
+    metric data                       = G6 21
+    absolute data                     = G3 90
+    incremental data                  = G3 91
+#    from                              = GNM 92
+    from                              not used
+    feedrate per minute               = G5 94
+    stop                              = M3 0
+    opt stop                          = M3 1
+    spindle on cw                     = M1 3
+    spindle on cc                     = M1 4
+    spindle off                       = M1 5
+    change tool                       = M3 6
+    coolant on mist                   = M2 8
+    coolant on                        = M2 8
+    coolant on flood                  = M2 8
+    coolant off                       = M2 9
+    end of tape                       = M3 2
+    end of prog                       = M3 30
+  end define
+
+  integer  6                          = 2
+  integer  7                          = 1
+  integer  10                         = 2
+  integer  11                         = 0
+  integer  12                         = 1
+# Don't link Coolant to spindle
+  integer  13                         = 0
+# Force out X and Y after tool change
+  integer  16                         = 3
+#  message output                      = false
+
+  define block tape start
+    "( GRBL DUCTpost by kfmut, 2019-12-20 )"
+    N ; xy plane
+    N ; G4 TapeUnits
+    N ; feedrate per minute
+    N ; G4  28 ; G5 91 ; Z 0 ; Z =C
+    N ; G5 TapeCoords ; G5 =C
+    ""
+  end define
+ 
+  define block tape end
+    ""
+    N ; spindle off
+#; coolant off
+    N ; G4  28 ; G5 91 ; Z 0 ; G4 =C ; G5 =C ; Z =C
+    N ; G4  28 ; G5 91 ; X 0 ; Y 0 ; G4 =C ; G5 =C ; X =C ; Y =C
+    N ; end of prog
+  end define
+
+  define block tool change first
+    ""
+    N ; T ToolNumber ; change tool
+  end define
+ 
+  define block tool change
+    ""
+    N ; spindle off 
+    N ; T ToolNumber ; change tool
+  end define
+
+  define block tool change clear
+    ""
+  end define
+ 
+  define block tape split start
+    "(>>>>> tape split start)"
+    N ; end of tape
+  end define
+ 
+  define block tape split end
+    "(>>>>> tape split end)"
+    N ; end of tape
+  end define
+ 
+  define block cycle start
+    "(>>>>> cycle start)"
+    N ; end of tape
+  end define
+ 
+  define block cycle end
+    "(>>>>> cycle end)"
+    N ; end of tape
+  end define
+ 
+  define block tape split move
+    "(>>>>> split move)"
+    N ; end of tape
+  end define
+
+  define block move rapid
+    N ; rapid ; G2 ; x coord ; y coord ; z coord ; spindle ; M1 ; M2 
+  end define
+
+  define block move linear
+    N ; linear ; G2 ; G7 ; x coord ; y coord ; z coord ; feedrate ; M1 ; M2
+  end define
+
+  define block move circle
+    N ; G1 ; G2 ; x coord ; y coord ; z coord ; key i ; key j ; key k ; feedrate ; M1 ; M2
+  end define
+
+end
