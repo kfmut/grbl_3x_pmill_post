@@ -8,6 +8,10 @@ machine standard
     address letter = "M"
   end define
 
+  define word DWELL
+    address letter = "P"
+  end define
+
   define format ( GNM M3 )
     address width                      = 1
     field width                        = 2
@@ -24,12 +28,17 @@ machine standard
       trailing zeros                   = true
       decimal point                    = false
       decimal places                   = 0
-    imperial formats
-      leading zeros                    = false
-      trailing zeros                   = true
-      decimal point                    = false
-      decimal places                   = 0
+    imperial formats                   = metric formats
    end define
+
+  define format ( DWELL )
+    tape position                      = 1
+    metric formats
+      decimal point                    = true
+      trailing zeros                   = true
+      decimal places                   = 1
+    imperial formats                   = metric formats
+  end define
 
   define format ( G7 )
    address letter = "G"
@@ -38,7 +47,6 @@ machine standard
   define format ( N )
     field width                        = 5
     leading zeros = true
-#    not 
     permanent
   end define
 
@@ -47,13 +55,10 @@ machine standard
       decimal point                    = false
       trailing zeros                   = true
       decimal places                   = 0
-    imperial formats
-      decimal point                    = false
-      trailing zeros                   = true
-      decimal places                   = 0
+    imperial formats                   = metric formats
   end define
 
-  define format ( GNM G1 G2 G3 G4 G5 G6 G7 M1 M2 M3 F S T X Y Z I J K MS EM )
+  define format ( GNM G1 G2 G3 G4 G5 G6 G7 M1 M2 M3 F S T X Y Z I J K MS EM P )
     tape position                      = 1
   end define
 
@@ -73,12 +78,14 @@ machine standard
   word order = ( +  G5   G6   G7   X    Y    Z    I    )
   word order = ( +  J    K    R    R2   Q    A    B    )
   word order = ( +  C    U    V    W    Z2   F    S    )
-  word order = ( +  T    M1   M2   M3   L    P    D    )
-  word order = ( +  E    H    O    MS   msg  EM   )
+  word order = ( +  T    M1   M2   M3   L    P    DWELL )
+  word order = ( +  D    E    H    O    MS   msg  EM   )
 
   define keys
     message start                     = MS
     message end                       = EM
+    dwell                             = DWELL
+    cycle dwell                       not used
   end define
 
   define codes
@@ -121,10 +128,13 @@ machine standard
   integer  13                         = 0
 # Force out X and Y after tool change
   integer  16                         = 3
+# Decimal output format
+  integer  51                         = 2
 #  message output                      = false
 
+
   define block tape start
-    "( GRBL DUCTpost by kfmut, 2019-12-20 )"
+    "( GRBL DUCTpost by kfmut, 2022-02-18 )"
     N ; xy plane
     N ; G4 TapeUnits
     N ; feedrate per minute
@@ -144,12 +154,15 @@ machine standard
 
   define block tool change first
     ""
+    N ; rapid ; X FromX ; Y FromY
+    N ; rapid ; Z SafeZ 
     N ; T ToolNumber ; change tool
   end define
  
   define block tool change
     ""
-    N ; spindle off 
+    N ; spindle off
+    N ; rapid ; Z SafeZ 
     N ; T ToolNumber ; change tool
   end define
 
@@ -192,6 +205,11 @@ machine standard
 
   define block move circle
     N ; G1 ; G2 ; x coord ; y coord ; z coord ; key i ; key j ; key k ; feedrate ; M1 ; M2
+  end define
+
+# G4 pause/dwell handler
+  define block cldat 1010
+    N ; GNM 4 ; DWELL =C
   end define
 
 end
