@@ -134,7 +134,8 @@ machine standard
 
 
   define block tape start
-    "( GRBL DUCTpost by kfmut, 2022-02-18 )"
+    "( GRBL DUCTpost by kfmut, 2022-08-27 )"
+    "( https://github.com/kfmut/grbl_3x_pmill_post )"
     N ; xy plane
     N ; G4 TapeUnits
     N ; feedrate per minute
