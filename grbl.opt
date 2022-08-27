@@ -200,11 +200,11 @@ machine standard
   end define
 
   define block move linear
-    N ; linear ; G2 ; G7 ; x coord ; y coord ; z coord ; feedrate ; M1 ; M2
+    N ; linear ; G2 ; G7 ; x coord ; y coord ; z coord ; feedrate ; spindle ; M1 ; M2
   end define
 
   define block move circle
-    N ; G1 ; G2 ; x coord ; y coord ; z coord ; key i ; key j ; key k ; feedrate ; M1 ; M2
+    N ; G1 ; G2 ; x coord ; y coord ; z coord ; key i ; key j ; key k ; feedrate ; spindle ; M1 ; M2
   end define
 
 # G4 pause/dwell handler
